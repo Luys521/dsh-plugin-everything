@@ -1,8 +1,8 @@
 # dsh-plugin-everything
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH）用的 Everything 搜索插件。
+给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）用的 Everything 全盘文件搜索插件。
 
-Everything 在 NTFS 卷上维护一份全盘文件名索引，查询走本地 IPC。装上这个插件后，Agent 就能秒级定位全盘任意文件，不用再靠递归遍历目录去猜。
+Everything 在 NTFS 卷上维护一份全盘文件名索引，查询走本地 IPC。装上这个插件，Agent 就能毫秒级定位全盘任意文件，不必再靠递归遍历目录去猜。
 
 ## 解决的问题
 
@@ -13,21 +13,31 @@ Agent 找文件时默认会 `glob` / `Get-ChildItem` / `os.walk` 递归。这个
 
 Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜测」变成「索引查询」。
 
-## 提供的工具
+## 工具
 
-| 工具 | 作用 |
-|---|---|
-| `everything_find` | 按文件名、路径、扩展名、大小、日期查找文件与文件夹 |
-| `everything_content` | 搜索文件正文，经系统 IFilter 能读 Word、PDF、Excel 的文字 |
-| `everything_status` | 检查索引是否可达、索引了多少条目 |
+| 工具 | 作用 | 何时用 |
+|---|---|---|
+| `everything_find` | 按文件名、路径、扩展名、大小、日期、属性查找文件与文件夹 | 需要定位某个文件时优先用它，不要递归目录 |
+| `everything_content` | 搜索文件正文；经系统 IFilter 可读 Word、PDF、Excel 的文字 | 需要知道「哪个文件里有这个词」，不关心行号 |
+| `everything_status` | 检查索引是否可达、索引了多少条目 | 前两个工具报错时先跑它 |
 
-## 安装前提
+`everything_content` 只回答「哪个文件包含」，不返回行号；需要匹配的具体行，仍要用 `grep` 或 `read`。
 
-1. Windows 系统
-2. 安装并运行 [Everything](https://www.voidtools.com/) 1.5 或更新版本
-3. 安装 ES 命令行客户端 `es.exe`
+## 安装
 
-ES 通常随 Everything 一起装上。若没有，从 [voidtools 下载页](https://www.voidtools.com/downloads/) 取 `ES (Command Line Interface)`，把 `es.exe` 放到 `%LOCALAPPDATA%\Microsoft\WindowsApps\`，或安装后改配置里的 `esPath` 指向它。
+**前提**：Windows 系统；已安装并运行 [Everything](https://www.voidtools.com/) 1.5 或更新版本。
+
+1. 安装 ES 命令行工具。Everything 本体**不含**它：
+
+   从 [voidtools/ES Releases](https://github.com/voidtools/ES/releases) 下载，把 `es.exe` 解压到 `%LOCALAPPDATA%\Microsoft\WindowsApps`（该目录在 `PATH` 中，可直接按名字调用）。装在别处则需在配置里改 `esPath`。
+
+2. 安装插件：
+
+   ```sh
+   dsh plugin --profile web add github:Luys521/dsh-plugin-everything
+   ```
+
+3. 重启 `dsh web` 生效。工具描述在启动时读入内存，热改配置不会重新加载。
 
 ## 配置
 
@@ -45,29 +55,53 @@ ES 通常随 Everything 一起装上。若没有，从 [voidtools 下载页](htt
 |---|---|---|
 | `esPath` | `%LOCALAPPDATA%\Microsoft\WindowsApps\es.exe` | ES 可执行文件路径 |
 | `instanceName` | 空（连默认实例） | Everything 命名实例名 |
-| `ipcTimeoutMs` | `10000` | 等待索引加载的最长时间 |
+| `ipcTimeoutMs` | `10000` | 等待索引加载的最长时间（毫秒） |
 | `maxResults` | `200` | 默认返回条数上限 |
 
-改完配置需要重启 DSH 生效。工具描述是启动时读进内存的，热改文件不会重新加载。
+## 工作原理
+
+- 每次查询都以子进程调用 `es.exe`，结果用 `-export-json` 写入临时文件再读回。ES 的 stdout 走控制台代码页，非 ASCII 路径会被破坏；走 JSON 导出可以保住每个字符。
+- 临时目录一查询一份，用完即删。
 
 ## 排查
 
 先跑 `everything_status`。
 
 - 报 `Everything IPC not found`：Everything 没在运行，或者版本太旧。早期 1.5 构建（如 1.5.0.1404a）的主实例可能不创建 IPC 窗口，升级到 1.5.0.1424b 后正常。
+- 报 `ES not found` / `spawn ... ENOENT`：`es.exe` 不在默认路径。按「安装」第 1 步放到位，或改配置里的 `esPath`。
 - 索引条目数是 0：Everything 还在建索引，等一会儿。
 - 想连命名实例：用 `Everything.exe -instance dsh` 启动，再把配置的 `instanceName` 设为 `dsh`。
 
 ## 已知限制
 
 - **内容搜索要配范围。** `content:` 不建内容索引，每次都要读文件。限定 `path` 或 `extensions` 后是毫秒级；不限定的全盘检索约需数秒。限制的是耗时，不是准确性。
+- **正则走 `regex:` 修饰符。** 插件内部统一拼成 `-search 'regex:...'`；直接调 `es.exe` 时不要用 `-regex` 开关，它与其它语法组合时行为不一致。
 - **基本只索引 NTFS 卷。** FAT/exFAT 与网络路径需要在 Everything 里单独配置文件夹索引。
 - **只支持 Windows。**
+- **索引范围取决于 Everything 的排除设置。** 插件不做过滤；对结果有疑问时先跑 `everything_status` 确认可达与条目数。
+
+## 兼容性
+
+需要宿主提供 `@deepseek-ai/dsh-tools`（插件声明 peer 依赖 `^0.0.1-rc.1`）。DSH 的插件 API 仍处于预发布阶段，宿主版本升级后若 `defineTool` 接口变动，需同步调整。
+
+## 依赖与致谢
+
+本插件不含任何 Everything 的代码或二进制，运行期只调用本机已安装的 Everything 与 `es.exe`。
+
+| 组件 | 提供方 | 与本项目的关系 |
+|---|---|---|
+| Everything（NTFS 全盘索引客户端） | [voidtools](https://www.voidtools.com/) | 本插件经其 IPC 查询索引。免费但闭源，不随本仓库分发 |
+| ES 命令行 `es.exe` | [voidtools/ES](https://github.com/voidtools/ES) | 本插件以子进程调用，解析其 `-export-json` 结果。不随本仓库分发 |
+
+- Everything 与 ES 的著作权归 voidtools（作者 David Carpenter）所有。
+- 本项目与 voidtools 无从属、赞助或背书关系。「Everything」为 voidtools 的产品名，此处仅作指称。
+- 本仓库的 MIT 许可仅覆盖本仓库内的代码，不延伸至 Everything 或 ES。
+- 若这个插件省了你的时间，索引本身是别人做的——可以去 [给 Everything 作者捐款](https://www.voidtools.com/donate/)。
 
 ## 文档
 
-详细用法、推荐搜索流程、换关键词的技巧见 [docs/DETAIL.md](docs/DETAIL.md)。
+详细用法、推荐检索流程、换关键词的技巧见 [docs/DETAIL.md](docs/DETAIL.md)。
 
 ## 许可
 
-MIT
+MIT，详见 [LICENSE](LICENSE)。
