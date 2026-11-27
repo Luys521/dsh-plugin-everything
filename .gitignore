@@ -5,3 +5,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.zip
+
+# The only dev dependency drags in the peer host, which is a prerelease line
+# that moves; resolve it fresh instead of pinning a lock to one build.
+package-lock.json

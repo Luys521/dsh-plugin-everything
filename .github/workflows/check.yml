@@ -8,7 +8,9 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # The package declares os: ["win32"], and npm enforces that on the root
+    # project, so an Ubuntu runner fails at `npm install` with EBADPLATFORM.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
