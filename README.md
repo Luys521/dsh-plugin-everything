@@ -127,7 +127,11 @@ This plugin contains no Everything code or binaries. It calls the Everything and
 
 ## Documentation
 
-Deeper usage, a recommended search workflow, and advice on rephrasing keywords: [docs/DETAIL.md](docs/DETAIL.md) (Chinese).
+[docs/DETAIL.md](docs/DETAIL.md) (Chinese) goes past this README and covers:
+
+- a three-step workflow — locate with `everything_find`, read with `read` / `grep`, then search again from what the read turned up;
+- why a class name usually misses while its data-structure name hits, worth reading before concluding that something does not exist;
+- how to state an empty result responsibly: name the scope and the hit count, because "not in this folder" is not "nowhere".
 
 ## Development
 

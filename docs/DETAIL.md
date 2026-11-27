@@ -1,5 +1,7 @@
 # Everything 搜索
 
+> 本文为中文。安装、配置与英文说明见 [README.zh.md](../README.zh.md) 与 [README.md](../README.md)。
+
 给 Agent 提供三个基于 Everything 索引的搜索工具。Everything 在 NTFS 卷上维护一份全盘文件名索引，查询走 IPC，不需要遍历目录，因此在几百万条目上也能毫秒返回。
 
 ## 工具
