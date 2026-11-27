@@ -58,6 +58,22 @@ Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜
 | `ipcTimeoutMs` | `10000` | 等待索引加载的最长时间（毫秒） |
 | `maxResults` | `200` | 默认返回条数上限 |
 
+### 内容索引（Everything 侧，可选）
+
+这一项设的不是插件，而是 Everything 自己。默认关闭时 `content:` 逐文件实时读取，慢但全；开启后正文常驻内存、查询变快，但**只覆盖索引范围**。
+
+打开 Everything → **工具 → 选项 → 高级**，在「显示设置包含」里输入 `content`，改这三个：
+
+| 设置名 | 作用 |
+|---|---|
+| `content_indexing_enabled` | 总开关，设 `true` 才启用内容索引 |
+| `content_indexing_include_only_folders` | 只索引这些目录，留空为不限 |
+| `content_indexing_include_only_files` | 只索引这些类型；**默认 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx`**，要搜 `.md`／`.csv`／`.pptx` 就把通配符追加进这个分号列表 |
+
+需要搜 `.xml` 之类不在这张表里的类型，也可以不动索引，改用 `es.exe` 直接配 `notindexed:content:...` 强制实时扫描——代价是退回慢速路径。快与全，只能选一个。
+
+> 少数 1.5 早期构建（如 1.5.0.1391a）左侧有独立的「内容」页。官方选项文档列出的页签只有 常规 / 历史 / 索引 / 插件 / 高级，找不到「内容」页时按上面的设置名搜索即可。
+
 ## 工作原理
 
 - 每次查询都以子进程调用 `es.exe`，结果用 `-export-json` 写入临时文件再读回。ES 的 stdout 走控制台代码页，非 ASCII 路径会被破坏；走 JSON 导出可以保住每个字符。
@@ -75,7 +91,7 @@ Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜
 ## 已知限制
 
 - **内容搜索要配范围。** `content:` 不建内容索引，每次都要读文件。限定 `path` 或 `extensions` 后是毫秒级；不限定的全盘检索约需数秒。限制的是耗时，不是准确性。
-- **开了内容索引，`content:` 只搜索引范围。** Everything 1.5 的「索引文件内容」（`content_indexing_enabled`）默认关闭；开启后正文常驻内存，`content:` 不再实时读文件，只查索引里 include-only 的文件夹与文件类型（默认 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx`）。此时本插件搜索引外类型（如 `.md`、`.csv`、`.pptx`）会**返回空而不报错**。要么在 Everything 里放宽 include-only 列表，要么直接用 `es.exe` 配 `notindexed:content:...` 强制实时扫描——但后者会退回慢速路径，快与全不可兼得。
+- **开了内容索引，`content:` 只搜索引范围。** 索引开启后只覆盖 include-only 的文件夹与类型（默认 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx`），本插件搜索引外类型（`.md`、`.csv`、`.pptx`）会**返回空而不报错**。改法与取舍见上面「配置 → 内容索引」。
 - **扫描件 PDF 搜不到。** 内容搜索依赖文本层；图片型 PDF 没有可提取的文字，不先做 OCR 就搜不出，与索引设不设置无关。
 - **正则走 `regex:` 修饰符。** 插件内部统一拼成 `-search 'regex:...'`；直接调 `es.exe` 时不要用 `-regex` 开关，它与其它语法组合时行为不一致。
 - **基本只索引 NTFS 卷。** FAT/exFAT 与网络路径需要在 Everything 里单独配置文件夹索引。

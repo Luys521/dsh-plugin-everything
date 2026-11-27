@@ -87,6 +87,7 @@ everything_content   query="客户端架构" path="<工作区目录>" extensions
 
 - **内容搜索要配范围。** `content:` 不建内容索引，每次都要读文件。限定 `path` 或 `extensions` 后是毫秒级；不限定的全盘检索要数秒（实测约 4 秒）。限制的是**耗时**，不是准确性。
 - **开启内容索引后，`content:` 只查索引范围。** Everything 1.5 的「索引文件内容」（`content_indexing_enabled`）默认关闭；开启后正文常驻内存，`content:` 改为查索引，且只覆盖 include-only 的文件夹与文件类型（默认 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx`）。插件只拼 `content:`，因此搜索引外类型会**静默返回空**。要覆盖索引外文件，用 `notindexed:content:"..."` 显式走实时扫描，代价是速度回到慢速路径。
+  设置位置：Everything → 工具 → 选项 → 高级，在「显示设置包含」里输入 `content`，改 `content_indexing_enabled`（总开关）、`content_indexing_include_only_folders`（限定目录）、`content_indexing_include_only_files`（限定类型，分号分隔的通配符，如 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx;*.md;*.csv;*.pptx`）。
 - **容器的可读性取决于 IFilter。** 非纯文本类型按扩展名找系统 IFilter 解析，没有则按纯文本兜底。Windows 10 及以上自带 docx 与 pdf 的 IFilter；扫描件 PDF 没有文本层，不做 OCR 一律搜不到。
 - **正则写法特殊。** 插件内部统一用 `-search 'regex:...'` 形式，直接调 `es.exe` 时不要用 `-regex` 开关——它与其它语法组合时行为不一致。
 - **基本只索引 NTFS 卷。** FAT/exFAT 与网络路径需要在 Everything 里单独配置文件夹索引后才可检索。
