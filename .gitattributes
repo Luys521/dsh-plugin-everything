@@ -1,0 +1,10 @@
+# Keep every text file LF in the repository and in `git archive` output.
+# Git for Windows defaults to core.autocrlf=true, which rewrites working-tree
+# and archived files to CRLF and makes byte comparison against HEAD useless.
+* text=auto eol=lf
+
+*.zip binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.dll binary
