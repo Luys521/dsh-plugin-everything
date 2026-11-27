@@ -127,7 +127,7 @@ This plugin contains no Everything code or binaries. It calls the Everything and
 
 ## Documentation
 
-[docs/DETAIL.md](docs/DETAIL.md) (Chinese) goes past this README and covers:
+[docs/DETAIL.md](docs/DETAIL.md) (Chinese) is the manual DSH surfaces alongside this plugin's tools. It goes past this README:
 
 - a three-step workflow — locate with `everything_find`, read with `read` / `grep`, then search again from what the read turned up;
 - why a class name usually misses while its data-structure name hits, worth reading before concluding that something does not exist;

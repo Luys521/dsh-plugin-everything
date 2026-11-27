@@ -2,6 +2,6 @@
   "meta": {
     "title": "Everything 搜索",
     "description": "通过 Everything 索引搜索本机文件：按文件名和路径瞬时定位，并能搜索文件正文，包括 Word 与 PDF 里的文字。",
-    "detail": "README.zh.md"
+    "detail": "docs/DETAIL.md"
   }
 }

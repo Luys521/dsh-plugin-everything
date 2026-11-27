@@ -127,7 +127,7 @@ Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜
 
 ## 文档
 
-[docs/DETAIL.md](docs/DETAIL.md) 讲这份 README 没展开的部分：
+[docs/DETAIL.md](docs/DETAIL.md) 是本插件随工具一起呈现给 DSH 的说明书，讲这份 README 没展开的部分：
 
 - 三步检索流程：`everything_find` 定位 → `read` / `grep` 读 → 从读到的内容反查其他文件；
 - 为什么类名常常搜不到、而数据结构名能命中——在断定「不存在」之前值得先读；
