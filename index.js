@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 import { defineTool } from '@deepseek-ai/dsh-tools'
@@ -12,10 +12,17 @@ export const inject = ['tools']
 export const name = 'everything-search'
 
 /**
- * The default ES binary location on this machine. Overridable through config
- * so a portable or differently versioned install keeps working.
+ * The default ES binary location: the per-user WindowsApps folder, which ES's
+ * installer puts on PATH but which execFile cannot resolve by bare name.
+ * Resolved at load time from the environment so the plugin works under any user
+ * profile; config.esPath overrides it.
  */
-const DEFAULT_ES = 'C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WindowsApps\\es.exe'
+const DEFAULT_ES = join(
+  process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'),
+  'Microsoft',
+  'WindowsApps',
+  'es.exe',
+)
 
 /**
  * Name the target instance for messages: the default instance has no name.
