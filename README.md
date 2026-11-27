@@ -18,7 +18,7 @@ Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜
 | 工具 | 作用 | 何时用 |
 |---|---|---|
 | `everything_find` | 按文件名、路径、扩展名、大小、日期、属性查找文件与文件夹 | 需要定位某个文件时优先用它，不要递归目录 |
-| `everything_content` | 搜索文件正文；经系统 IFilter 可读 Word、PDF、Excel 的文字 | 需要知道「哪个文件里有这个词」，不关心行号 |
+| `everything_content` | 搜索文件正文；经系统 IFilter 可读 Word、PDF、Excel 的文字，无对应 IFilter 则按纯文本兜底 | 需要知道「哪个文件里有这个词」，不关心行号 |
 | `everything_status` | 检查索引是否可达、索引了多少条目 | 前两个工具报错时先跑它 |
 
 `everything_content` 只回答「哪个文件包含」，不返回行号；需要匹配的具体行，仍要用 `grep` 或 `read`。
@@ -75,6 +75,8 @@ Everything 的索引覆盖整个磁盘，毫秒级返回。搜索从「遍历猜
 ## 已知限制
 
 - **内容搜索要配范围。** `content:` 不建内容索引，每次都要读文件。限定 `path` 或 `extensions` 后是毫秒级；不限定的全盘检索约需数秒。限制的是耗时，不是准确性。
+- **开了内容索引，`content:` 只搜索引范围。** Everything 1.5 的「索引文件内容」（`content_indexing_enabled`）默认关闭；开启后正文常驻内存，`content:` 不再实时读文件，只查索引里 include-only 的文件夹与文件类型（默认 `*.doc;*.docx;*.pdf;*.txt;*.xls;*.xlsx`）。此时本插件搜索引外类型（如 `.md`、`.csv`、`.pptx`）会**返回空而不报错**。要么在 Everything 里放宽 include-only 列表，要么直接用 `es.exe` 配 `notindexed:content:...` 强制实时扫描——但后者会退回慢速路径，快与全不可兼得。
+- **扫描件 PDF 搜不到。** 内容搜索依赖文本层；图片型 PDF 没有可提取的文字，不先做 OCR 就搜不出，与索引设不设置无关。
 - **正则走 `regex:` 修饰符。** 插件内部统一拼成 `-search 'regex:...'`；直接调 `es.exe` 时不要用 `-regex` 开关，它与其它语法组合时行为不一致。
 - **基本只索引 NTFS 卷。** FAT/exFAT 与网络路径需要在 Everything 里单独配置文件夹索引。
 - **只支持 Windows。**
