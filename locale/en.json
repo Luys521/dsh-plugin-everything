@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Everything search",
+    "description": "Searches the local machine through the Everything index: instant filename and path lookup plus content search that also reaches Word and PDF text.",
+    "detail": "docs/DETAIL.md"
+  }
+}

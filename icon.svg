@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Everything search">
+  <rect width="64" height="64" rx="14" fill="#111827"/>
+  <circle cx="27" cy="27" r="14" fill="none" stroke="#60a5fa" stroke-width="5"/>
+  <line x1="37.5" y1="37.5" x2="50" y2="50" stroke="#60a5fa" stroke-width="6" stroke-linecap="round"/>
+  <rect x="19" y="21" width="16" height="2.6" rx="1.3" fill="#e5e7eb"/>
+  <rect x="19" y="26.2" width="16" height="2.6" rx="1.3" fill="#e5e7eb"/>
+  <rect x="19" y="31.4" width="10" height="2.6" rx="1.3" fill="#e5e7eb"/>
+</svg>
